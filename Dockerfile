@@ -1,23 +1,25 @@
-FROM python:3.11 as builder
+FROM python:3.8-slim as builder
 
 WORKDIR /usr/app
 ENV PATH="/usr/app/venv/bin:$PATH"
 
-#RUN apt-get update && apt-get install -y git
-RUN apt-get update
-RUN apt-get install ffmpeg -y #issue 445
+RUN sed -e 's/deb.debian.org/mirrors.aliyun.com/g' \
+              -e  's/security.debian.org/mirrors.aliyun.com/g' \
+        /etc/apt/sources.list -i
+
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /usr/app
 RUN python -m venv ./venv
 
 COPY requirements.txt .
 
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
 
 # RUN pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/
 # RUN pip config set global.trusted-host mirrors.aliyun.com
 
-FROM python:3.11
+FROM python:3.8-slim
 
 WORKDIR /usr/app
 ENV PATH="/usr/app/venv/bin:$PATH"
